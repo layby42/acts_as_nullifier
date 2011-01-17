@@ -26,10 +26,10 @@ module ActiveRecord
       def acts_as_nullifier(options = {})
         @nullable_attributes = nil
         
-        self.metaclass.instance_eval do
+        self.instance_eval do
           define_method :nullable_attributes do
             if @nullable_attributes.nil?
-              only = [options[:only] || self.columns.map { |column| column.name.to_sym }].flatten
+              only = [options[:only] || self.class.columns.map { |column| column.name.to_sym }].flatten
               except = [options[:except] || []].flatten
               @nullable_attributes = only - except
             end
@@ -49,7 +49,7 @@ module ActiveRecord
       # Value of 'all' can be adjusted with +:only+ and +:except+ options to +acts_as_nullifier+
       #
       def write_attribute(name, value)
-        if self.class.nullable_attributes.include? name.to_sym
+        if self.nullable_attributes.include? name.to_sym
           column = column_for_attribute(name)
           if column && (column.type == :string || column.type == :text) && column.null == true
             value = nil if value == ''
